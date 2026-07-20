@@ -12,7 +12,7 @@ from fastapi import FastAPI, Query
 app = FastAPI(title="UrbanFlow Metrics API", version="0.1.0")
 
 
-def _query(sql: str, params: dict | None = None) -> list[dict]:
+def _query(sql: str, params: list | None = None) -> list[dict]:
     import trino
 
     conn = trino.dbapi.connect(
@@ -23,7 +23,7 @@ def _query(sql: str, params: dict | None = None) -> list[dict]:
         schema="gold",
     )
     cur = conn.cursor()
-    cur.execute(sql, params or {})
+    cur.execute(sql, params or [])
     cols = [c[0] for c in cur.description]
     return [dict(zip(cols, row)) for row in cur.fetchall()]
 
@@ -43,10 +43,10 @@ def zone_demand(
         select pickup_hour, trip_count, revenue, avg_distance,
                temperature_2m, precipitation
         from mart_zone_hourly_demand
-        where pickup_zone_id = %(zone)s
+        where pickup_zone_id = ?
         order by pickup_hour desc
-        limit %(limit)s
+        limit ?
         """,
-        {"zone": zone_id, "limit": limit},
+        [zone_id, limit],
     )
     return {"zone_id": zone_id, "rows": rows}
