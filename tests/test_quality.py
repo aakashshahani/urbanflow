@@ -18,11 +18,11 @@ CLEAN = pd.DataFrame(
 
 DIRTY = pd.DataFrame(
     {
-        "tpep_pickup_datetime": ["2024-01-01 00:00:00", None],
+        "tpep_pickup_datetime": ["2024-01-01 00:00:00", None],   # missing key
         "pulocationid": [100, 132],
-        "total_amount": [18.5, -5.0],   # negative fare
-        "trip_distance": [3.1, 0.0],    # zero distance
-        "passenger_count": [1, 99],     # impossible count
+        "total_amount": [18.5, 42.0],
+        "trip_distance": [3.1, 5000.0],   # corrupt distance, past sanity bound
+        "passenger_count": [1, 99],       # corrupt count, past sanity bound
     }
 )
 

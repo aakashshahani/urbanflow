@@ -13,18 +13,29 @@ SUITE_NAME = "bronze_yellow_trips"
 
 
 def build_suite() -> gx.ExpectationSuite:
+    # Bronze is raw. This gate checks that data arrived, keys are present, and values
+    # are not corrupt. Business rules (positive fare, non-zero distance) are enforced
+    # downstream by the silver filter and dbt tests, so a real load with the usual
+    # refunds and zero-distance trips is not wrongly rejected here. `mostly` tolerates
+    # the rare outlier while still catching a genuinely broken load.
     suite = gx.ExpectationSuite(name=SUITE_NAME)
     suite.add_expectation(gxe.ExpectTableRowCountToBeBetween(min_value=1))
     suite.add_expectation(gxe.ExpectColumnValuesToNotBeNull(column="tpep_pickup_datetime"))
     suite.add_expectation(gxe.ExpectColumnValuesToNotBeNull(column="pulocationid"))
     suite.add_expectation(
-        gxe.ExpectColumnValuesToBeBetween(column="total_amount", min_value=0, strict_min=True)
+        gxe.ExpectColumnValuesToBeBetween(
+            column="total_amount", min_value=-1000, max_value=100000, mostly=0.99
+        )
     )
     suite.add_expectation(
-        gxe.ExpectColumnValuesToBeBetween(column="trip_distance", min_value=0, strict_min=True)
+        gxe.ExpectColumnValuesToBeBetween(
+            column="trip_distance", min_value=0, max_value=1000, mostly=0.99
+        )
     )
     suite.add_expectation(
-        gxe.ExpectColumnValuesToBeBetween(column="passenger_count", min_value=0, max_value=9)
+        gxe.ExpectColumnValuesToBeBetween(
+            column="passenger_count", min_value=0, max_value=9, mostly=0.95
+        )
     )
     return suite
 
