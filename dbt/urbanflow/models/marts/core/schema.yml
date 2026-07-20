@@ -1,0 +1,57 @@
+version: 2
+
+models:
+  - name: dim_zone
+    description: SCD Type 2 taxi-zone dimension with valid_from / valid_to history.
+    columns:
+      - name: zone_id
+        tests: [not_null]
+      - name: is_current
+        tests: [not_null]
+
+  - name: dim_date
+    description: Date dimension spanning the loaded trips.
+    columns:
+      - name: date_key
+        tests: [not_null, unique]
+      - name: date_day
+        tests: [not_null]
+
+  - name: dim_weather
+    description: Hourly weather dimension, one row per hour.
+    columns:
+      - name: weather_key
+        tests: [not_null, unique]
+
+  - name: fact_trips
+    description: One row per trip with foreign keys to the conformed dimensions.
+    columns:
+      - name: trip_key
+        tests: [not_null, unique]
+      - name: pickup_date_key
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_date')
+              field: date_key
+      - name: pickup_zone_id
+        tests: [not_null]
+      - name: total_amount
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              inclusive: false
+
+unit_tests:
+  - name: stg_yellow_trips_drops_invalid_rows
+    description: Non-positive fare or zero-distance trips must not reach silver.
+    model: stg_yellow_trips
+    given:
+      - input: source('bronze', 'yellow_trips')
+        rows:
+          - {tpep_pickup_datetime: "2024-01-01 00:00:00", tpep_dropoff_datetime: "2024-01-01 00:12:00", pulocationid: 100, dolocationid: 200, passenger_count: 1, trip_distance: 3.1, total_amount: 18.5, _source_month: "2024-01"}
+          - {tpep_pickup_datetime: "2024-01-01 01:00:00", tpep_dropoff_datetime: "2024-01-01 01:05:00", pulocationid: 100, dolocationid: 200, passenger_count: 1, trip_distance: 0.0, total_amount: 9.0, _source_month: "2024-01"}
+          - {tpep_pickup_datetime: "2024-01-01 02:00:00", tpep_dropoff_datetime: "2024-01-01 02:20:00", pulocationid: 100, dolocationid: 200, passenger_count: 1, trip_distance: 5.0, total_amount: -1.0, _source_month: "2024-01"}
+    expect:
+      rows:
+        - {pickup_zone_id: 100, dropoff_zone_id: 200, passenger_count: 1, trip_distance: 3.1, total_amount: 18.5, source_month: "2024-01"}
