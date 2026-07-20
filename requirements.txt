@@ -1,0 +1,27 @@
+# Ingestion / core
+pyarrow>=15.0.0
+pandas>=2.2.0
+requests>=2.31.0
+boto3>=1.34.0
+python-dotenv>=1.0.0
+
+# Lakehouse query / catalog
+trino>=0.328.0
+pyiceberg[s3fs,glue]>=0.7.0
+
+# dbt (both adapters; pick per target)
+dbt-core>=1.8.0
+dbt-trino>=1.8.0
+dbt-athena-community>=1.8.0
+
+# Data quality
+great-expectations>=0.18.0
+
+# API
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+
+# Dev / test
+pytest>=8.0.0
+ruff>=0.4.0
+sqlfluff>=3.0.0

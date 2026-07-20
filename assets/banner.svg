@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 220" width="1200" height="220" role="img" aria-label="UrbanFlow">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f2438"/>
+      <stop offset="1" stop-color="#1f6f6a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="220" fill="url(#bg)"/>
+  <g fill="none" stroke="#5fd0c5" stroke-width="2" opacity="0.35">
+    <path d="M0 170 H1200"/>
+    <path d="M120 220 V60 H360 V220"/>
+    <path d="M420 220 V100 H560 V220"/>
+    <path d="M640 220 V40 H840 V220"/>
+    <path d="M900 220 V120 H1040 V220"/>
+  </g>
+  <g fill="#5fd0c5" opacity="0.9">
+    <circle cx="180" cy="170" r="6"/><circle cx="470" cy="170" r="6"/>
+    <circle cx="760" cy="170" r="6"/><circle cx="980" cy="170" r="6"/>
+  </g>
+  <text x="80" y="110" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="64" font-weight="800" fill="#ffffff">UrbanFlow</text>
+  <text x="82" y="150" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="22" fill="#cfeeea">Urban-mobility data lakehouse - Iceberg - dbt - Airflow - AWS</text>
+</svg>
