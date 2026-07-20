@@ -6,8 +6,8 @@ with source as (
 
 cleaned as (
     select
-        cast(tpep_pickup_datetime as timestamp)   as pickup_ts,
-        cast(tpep_dropoff_datetime as timestamp)  as dropoff_ts,
+        cast(tpep_pickup_datetime as timestamp(6))   as pickup_ts,
+        cast(tpep_dropoff_datetime as timestamp(6))  as dropoff_ts,
         cast(pulocationid as integer)             as pickup_zone_id,
         cast(dolocationid as integer)             as dropoff_zone_id,
         cast(passenger_count as integer)          as passenger_count,
@@ -18,6 +18,9 @@ cleaned as (
     where total_amount > 0
       and trip_distance > 0
       and tpep_pickup_datetime is not null
+      -- tie each row to its source month: TLC files carry stray rows with garbage
+      -- pickup dates (years like 2002 or 2088) that would otherwise pollute the dims
+      and date_format(cast(tpep_pickup_datetime as timestamp(6)), '%Y-%m') = _source_month
 )
 
 select * from cleaned
