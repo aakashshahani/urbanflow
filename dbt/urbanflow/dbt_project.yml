@@ -1,0 +1,24 @@
+name: urbanflow
+version: "0.1.0"
+config-version: 2
+
+profile: urbanflow
+
+model-paths: ["models"]
+snapshot-paths: ["snapshots"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+
+target-path: target
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  urbanflow:
+    staging:
+      +materialized: view
+      +schema: silver
+    marts:
+      +materialized: table
+      +schema: gold
+      +table_type: iceberg

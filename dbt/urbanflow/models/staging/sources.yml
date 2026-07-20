@@ -1,0 +1,20 @@
+version: 2
+
+sources:
+  - name: bronze
+    description: Raw Iceberg tables landed by the ingestion layer.
+    schema: bronze
+    tables:
+      - name: yellow_trips
+        description: Raw NYC TLC yellow taxi trips, append-only.
+        loaded_at_field: _source_month
+        columns:
+          - name: tpep_pickup_datetime
+            tests: [not_null]
+          - name: pulocationid
+            tests: [not_null]
+      - name: weather_hourly
+        description: Hourly weather observations from Open-Meteo.
+        columns:
+          - name: observed_at
+            tests: [not_null, unique]

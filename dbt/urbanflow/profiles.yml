@@ -1,0 +1,23 @@
+# dbt targets mirror the two backends. `local` runs on Trino over MinIO Iceberg;
+# `aws` runs on Athena over S3 with the Glue catalog. Same models, both places.
+urbanflow:
+  target: local
+  outputs:
+    local:
+      type: trino
+      method: none
+      host: "{{ env_var('TRINO_HOST', 'localhost') }}"
+      port: "{{ env_var('TRINO_PORT', '8080') | int }}"
+      user: "{{ env_var('TRINO_USER', 'urbanflow') }}"
+      catalog: iceberg
+      schema: silver
+      threads: 4
+
+    aws:
+      type: athena
+      region_name: "{{ env_var('AWS_REGION', 'us-east-1') }}"
+      database: "{{ env_var('GLUE_DATABASE', 'urbanflow') }}"
+      schema: silver
+      s3_staging_dir: "{{ env_var('ATHENA_OUTPUT_S3') }}"
+      work_group: "{{ env_var('ATHENA_WORKGROUP', 'urbanflow') }}"
+      threads: 4
