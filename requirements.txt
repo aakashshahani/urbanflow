@@ -15,7 +15,7 @@ dbt-trino>=1.8.0
 dbt-athena-community>=1.8.0
 
 # Data quality
-great-expectations>=0.18.0
+great-expectations>=1.0,<2.0
 
 # API
 fastapi>=0.110.0

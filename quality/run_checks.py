@@ -1,14 +1,15 @@
 """Run the bronze-layer quality gates. Raises (fails the DAG) on any violation.
 
-Kept dependency-light for now: reads the bronze Iceberg tables and asserts the
-invariants that must hold before dbt builds gold. The Great Expectations suites in
-quality/expectations/ layer on top of these as the schema stabilizes.
+Reads the bronze Iceberg trips table, checks it exists and is non-empty, then runs
+the Great Expectations suite in quality/expectations/ over the rows. Any failure
+raises before dbt builds the gold layer, so a bad load never reaches the marts.
 """
 from __future__ import annotations
 
 import sys
 
 from ingestion.config import BRONZE_NAMESPACE, load_catalog
+from quality.expectations.trip_suite import assert_valid
 
 
 class QualityError(RuntimeError):
@@ -17,7 +18,6 @@ class QualityError(RuntimeError):
 
 def run_all() -> None:
     catalog = load_catalog()
-    failures: list[str] = []
 
     trips_id = f"{BRONZE_NAMESPACE}.yellow_trips"
     if not catalog.table_exists(trips_id):
@@ -25,14 +25,13 @@ def run_all() -> None:
 
     trips = catalog.load_table(trips_id).scan().to_arrow()
     if trips.num_rows == 0:
-        failures.append("yellow_trips: zero rows (volume anomaly)")
+        raise QualityError("yellow_trips: zero rows (volume anomaly)")
 
-    total = trips.column("total_amount").to_pylist() if "total_amount" in trips.column_names else []
-    if total and min(total) < 0:
-        failures.append("yellow_trips: negative total_amount leaked past ingestion")
+    try:
+        assert_valid(trips.to_pandas())
+    except ValueError as exc:
+        raise QualityError(str(exc)) from exc
 
-    if failures:
-        raise QualityError("; ".join(failures))
     print(f"quality gate passed: {trips.num_rows:,} bronze trip rows", flush=True)
 
 
