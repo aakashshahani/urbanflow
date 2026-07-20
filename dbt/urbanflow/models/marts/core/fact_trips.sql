@@ -7,6 +7,7 @@
         incremental_strategy='merge',
         unique_key='trip_key',
         table_type='iceberg',
+        properties={'partitioning': "ARRAY['day(pickup_ts)']"},
     )
 }}
 with trips as (
