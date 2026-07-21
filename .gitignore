@@ -36,8 +36,9 @@ standalone_admin_password.txt
 !*.tfvars.example
 crash.log
 
-# Metabase driver jar (fetched by `make metabase`, too big to vendor)
-metabase/plugins/*.jar
+# Metabase runtime: driver jar (fetched by `make metabase`) and stray db files
+metabase/plugins/*
+!metabase/plugins/.gitkeep
 
 # OS / editor
 .DS_Store
