@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="assets/banner.svg" alt="UrbanFlow: urban-mobility data lakehouse" width="100%">
-</p>
-
 # UrbanFlow
 
 [![CI](https://github.com/aakashshahani/urbanflow/actions/workflows/ci.yml/badge.svg)](https://github.com/aakashshahani/urbanflow/actions/workflows/ci.yml)

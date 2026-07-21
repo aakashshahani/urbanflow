@@ -1,0 +1,12 @@
+# Lightweight dependencies for CI (lint + unit tests only).
+# The full requirements.txt pulls three dbt adapters, pyiceberg, and FastAPI, whose
+# combined version graph is too deep for pip to resolve on CI (resolution-too-deep).
+# None of those are needed to run ruff and the pytest suite.
+pyarrow>=15.0.0
+pandas>=2.2.0
+requests>=2.31.0
+python-dotenv>=1.0.0
+great-expectations>=1.0,<2.0
+pytest>=8.0.0
+ruff>=0.4.0
+sqlfluff>=3.0.0
