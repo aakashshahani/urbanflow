@@ -1,5 +1,8 @@
 -- Silver: typed and cleaned yellow trips. Drops the obvious junk (non-positive
 -- fares, zero-distance rides, out-of-range passenger counts) so gold stays honest.
+-- Materialized as an Iceberg table: Athena's Hive-typed views reject timestamp(6),
+-- which the Iceberg tables accept on both Athena and Trino.
+{{ config(materialized='table', table_type='iceberg') }}
 with source as (
     select * from {{ source('bronze', 'yellow_trips') }}
 ),

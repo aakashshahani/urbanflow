@@ -16,8 +16,10 @@ urbanflow:
     aws:
       type: athena
       region_name: "{{ env_var('AWS_REGION', 'us-east-1') }}"
-      database: "{{ env_var('GLUE_DATABASE', 'urbanflow') }}"
+      database: awsdatacatalog
       schema: silver
       s3_staging_dir: "{{ env_var('ATHENA_OUTPUT_S3') }}"
+      # keep table data out of the results prefix (which has a 7-day expiry rule)
+      s3_data_dir: "s3://{{ env_var('WAREHOUSE_BUCKET') }}/warehouse/"
       work_group: "{{ env_var('ATHENA_WORKGROUP', 'urbanflow') }}"
       threads: 4

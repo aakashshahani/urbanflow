@@ -57,7 +57,9 @@ tf-apply: ## Provision AWS (S3 + Glue + Athena + IAM); no VPC/NAT, no Redshift, 
 
 deploy-aws: ## Run the pipeline once against AWS (URBANFLOW_TARGET=aws)
 	URBANFLOW_TARGET=aws python -m ingestion.tlc --months $${TLC_MONTHS:-2024-01}
-	cd $(DBT_DIR) && dbt build --target aws
+	URBANFLOW_TARGET=aws python -m ingestion.weather --months $${TLC_MONTHS:-2024-01}
+	# unit tests excluded on Athena: its temp tables force millisecond timestamps
+	cd $(DBT_DIR) && dbt build --target aws --exclude-resource-type unit_test
 
 tf-destroy: ## Tear down all AWS resources
 	cd terraform && terraform destroy

@@ -1,6 +1,19 @@
 -- Central fact at one row per trip, with foreign keys to the conformed dimensions.
 -- Incremental so daily runs and backfills only process new pickup days; the Iceberg
 -- MERGE keeps re-runs idempotent (no duplicate trips on replay).
+{# Iceberg day-partitioning, expressed per adapter: Athena uses partitioned_by,
+   Trino uses the iceberg partitioning table property. Both prune a single-day scan. #}
+{% if target.type == 'athena' %}
+{{
+    config(
+        materialized='incremental',
+        incremental_strategy='merge',
+        unique_key='trip_key',
+        table_type='iceberg',
+        partitioned_by=["day(pickup_ts)"],
+    )
+}}
+{% else %}
 {{
     config(
         materialized='incremental',
@@ -10,6 +23,7 @@
         properties={'partitioning': "ARRAY['day(pickup_ts)']"},
     )
 }}
+{% endif %}
 with trips as (
     select * from {{ ref('stg_yellow_trips') }}
     {% if is_incremental() %}
