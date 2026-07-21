@@ -36,6 +36,9 @@ standalone_admin_password.txt
 !*.tfvars.example
 crash.log
 
+# Metabase driver jar (fetched by `make metabase`, too big to vendor)
+metabase/plugins/*.jar
+
 # OS / editor
 .DS_Store
 Thumbs.db

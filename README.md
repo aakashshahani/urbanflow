@@ -78,6 +78,7 @@ make up          # MinIO, Iceberg REST, Trino, Postgres, Airflow
 make seed        # download a sample month of trips and weather into bronze
 make build       # dbt build (staging to marts) on local Trino and Iceberg
 make test        # pytest, dbt tests, Great Expectations
+make metabase    # fetch the Trino driver, start Metabase, build the dashboard
 make demo        # the whole thing end to end on the sample slice
 make down        # stop the stack
 ```

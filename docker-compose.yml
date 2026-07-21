@@ -109,6 +109,20 @@ services:
       airflow-init:
         condition: service_completed_successfully
 
+  metabase:
+    image: metabase/metabase:v0.53.10
+    depends_on:
+      - trino
+    ports:
+      - "3000:3000"
+    environment:
+      MB_PLUGINS_DIR: /plugins
+      MB_DB_FILE: /metabase-data/metabase.db
+    volumes:
+      - ./metabase/plugins:/plugins
+      - metabasedata:/metabase-data
+
 volumes:
   pgdata:
   miniodata:
+  metabasedata:

@@ -36,6 +36,13 @@ lint: ## ruff + sqlfluff
 api: ## Run the FastAPI /metrics service
 	uvicorn api.main:app --reload --port 8000
 
+METABASE_DRIVER := metabase/plugins/starburst-6.1.0.metabase-driver.jar
+metabase: ## Fetch the Trino driver, start Metabase, build the mobility dashboard
+	@test -f $(METABASE_DRIVER) || curl -L -o $(METABASE_DRIVER) \
+	  https://github.com/starburstdata/metabase-driver/releases/download/6.1.0/starburst-6.1.0.metabase-driver.jar
+	docker compose up -d metabase
+	python -m scripts.setup_metabase
+
 measure: ## Benchmark Athena/Trino bytes-scanned before/after optimization
 	python -m scripts.measure_scan
 
