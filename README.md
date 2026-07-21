@@ -24,13 +24,17 @@ Every number is produced by the pipeline on real NYC TLC data, not estimated:
 
 | Result | Measured | How |
 |--------|----------|-----|
-| Rows scanned for a single-day query | 2,871,948 to 74,842, **97.4% fewer** | day-partitioning `fact_trips`; `scripts/measure_scan.py` before and after |
+| Bytes scanned for a single-day query on Athena | 4.81 MB to 0.13 MB, **97.4% fewer** | day-partitioning `fact_trips`; measured on real Athena (and locally with `scripts/measure_scan.py`) |
 | Duplicate trips after an incremental re-run | **0** (row count held at 2,871,948) | idempotent Iceberg `MERGE` on a deterministic `trip_key` |
 | Trips ingested then modeled | 2,964,624 bronze to 2,871,948 fact | cleaned in silver, exact duplicates deduped in gold |
 | Bad data reaching the gold layer | **blocked** | Great Expectations gate on the 2.96M bronze rows plus 17 dbt tests fail the DAG |
 
 The sample is one month; the same pipeline scales to the full 100M+ row TLC history by adding
 months to the ingest. The star schema serves a Metabase dashboard and a FastAPI `/metrics` endpoint.
+
+The whole pipeline has been run end to end **both locally (Trino/MinIO) and on real AWS**
+(S3 + Glue + Athena, provisioned by Terraform): 25 dbt models and tests green on Athena, with the
+bytes-scanned figure above measured from Athena's own query statistics.
 
 ## Architecture
 
