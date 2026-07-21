@@ -54,6 +54,15 @@ flowchart LR
 A longer walkthrough of the design and the cost model is in
 [docs/architecture.md](docs/architecture.md).
 
+## Dashboard
+
+The gold marts drive a Metabase dashboard (built from code by `scripts/setup_metabase.py`):
+demand by pickup zone, the daily commute curve, and trips against temperature.
+
+<p align="center">
+  <img src="assets/dashboard.png" alt="UrbanFlow Mobility dashboard in Metabase" width="100%">
+</p>
+
 ## Local and AWS, same Iceberg
 
 The pipeline builds and iterates entirely on a free local stack, then stands up real AWS once

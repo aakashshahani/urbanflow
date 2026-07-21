@@ -18,6 +18,8 @@ ADMIN = {"first_name": "Aakash", "last_name": "Shahani", "email": "admin@urbanfl
 PASSWORD = "Lakehouse!2026aak"
 DB_NAME = "UrbanFlow Lakehouse"
 
+# (name, display, sql, viz_settings). Explicit dimensions/metrics keep charts from
+# guessing axes when both columns are numeric.
 CARDS = [
     (
         "Top pickup zones by trips",
@@ -26,12 +28,14 @@ CARDS = [
         "from gold.mart_zone_hourly_demand m "
         "join gold.dim_zone z on m.pickup_zone_id = z.zone_id and z.is_current "
         "group by z.zone_name order by trips desc limit 10",
+        {"graph.dimensions": ["zone_name"], "graph.metrics": ["trips"]},
     ),
     (
         "Trips by hour of day",
         "bar",
         "select hour(pickup_hour) as hour_of_day, sum(trip_count) as trips "
         "from gold.mart_zone_hourly_demand group by 1 order by 1",
+        {"graph.dimensions": ["hour_of_day"], "graph.metrics": ["trips"]},
     ),
     (
         "Daily trips vs temperature",
@@ -39,6 +43,7 @@ CARDS = [
         "select cast(pickup_hour as date) as day, sum(trip_count) as trips, "
         "round(avg(temperature_2m), 1) as avg_temp_c "
         "from gold.mart_zone_hourly_demand group by 1 order by 1",
+        {"graph.dimensions": ["day"], "graph.metrics": ["trips", "avg_temp_c"]},
     ),
 ]
 
@@ -97,14 +102,14 @@ def wait_gold(h: dict, db_id: int) -> None:
 def ensure_cards(h: dict, db_id: int) -> list[int]:
     existing = {c["name"]: c["id"] for c in requests.get(f"{BASE}/api/card", headers=h, timeout=30).json()}
     ids = []
-    for name, display, sql in CARDS:
+    for name, display, sql, viz in CARDS:
         if name in existing:
             ids.append(existing[name])
             continue
         body = {
             "name": name,
             "display": display,
-            "visualization_settings": {},
+            "visualization_settings": viz,
             "dataset_query": {"type": "native", "database": db_id, "native": {"query": sql}},
         }
         ids.append(requests.post(f"{BASE}/api/card", json=body, headers=h, timeout=60).json()["id"])
