@@ -16,8 +16,9 @@ DEFAULT_ARGS = {
     "retries": 3,
     "retry_delay": timedelta(minutes=2),
     "retry_exponential_backoff": True,
-    "sla": timedelta(hours=2),
 }
+# SLA is set on the final non-mapped task below: Airflow forbids SLAs on the
+# dynamically mapped ingest tasks.
 
 
 @dag(
@@ -64,6 +65,7 @@ def urbanflow_pipeline():
     dbt_build = BashOperator(
         task_id="dbt_build",
         bash_command="cd /opt/airflow/dbt/urbanflow && dbt build --target local",
+        sla=timedelta(hours=2),
     )
 
     [trips, weather] >> gate >> dbt_build

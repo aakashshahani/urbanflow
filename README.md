@@ -34,7 +34,11 @@ months to the ingest. The star schema serves a Metabase dashboard and a FastAPI 
 
 The whole pipeline has been run end to end **both locally (Trino/MinIO) and on real AWS**
 (S3 + Glue + Athena, provisioned by Terraform): 25 dbt models and tests green on Athena, with the
-bytes-scanned figure above measured from Athena's own query statistics.
+bytes-scanned figure below measured from Athena's own query statistics.
+
+<p align="center">
+  <img src="assets/scan_reduction.png" alt="Athena bytes scanned cut 97.4% by day-partitioning" width="70%">
+</p>
 
 ## Architecture
 
@@ -65,6 +69,15 @@ demand by pickup zone, the daily commute curve, and trips against temperature.
 
 <p align="center">
   <img src="assets/dashboard.png" alt="UrbanFlow Mobility dashboard in Metabase" width="100%">
+</p>
+
+## Orchestration
+
+Airflow runs the daily pipeline: dynamic task mapping fans out ingestion per month for backfills,
+a quality gate blocks bad data, and only then does dbt build the marts.
+
+<p align="center">
+  <img src="assets/airflow_dag.png" alt="UrbanFlow Airflow DAG" width="100%">
 </p>
 
 ## Local and AWS, same Iceberg
