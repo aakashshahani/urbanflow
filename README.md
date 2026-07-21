@@ -18,16 +18,19 @@ revenue, and trip patterns move by zone and hour against the weather, the kind o
 pricing or supply team actually asks, which is what makes the dimensional model and the slowly
 changing zone dimension carry real weight rather than sit there for show.
 
-## Why it is built this way
+## Results on the Jan 2024 sample
 
-Every headline number the project reports is produced by the pipeline itself, not estimated:
+Every number is produced by the pipeline on real NYC TLC data, not estimated:
 
-| Claim | How it is produced |
-|-------|--------------------|
-| Athena bytes scanned cut by partitioning plus Iceberg compaction | `scripts/measure_scan.py` runs the same query before and after the optimization |
-| Zero duplicate rows across repeated backfills | an idempotent `MERGE INTO` proven by a re-run test |
-| 100M+ trip rows processed | NYC TLC volume, expanded from the sample slice |
-| Bad data stopped before the gold layer | Great Expectations and dbt tests that fail the DAG |
+| Result | Measured | How |
+|--------|----------|-----|
+| Rows scanned for a single-day query | 2,871,948 to 74,842, **97.4% fewer** | day-partitioning `fact_trips`; `scripts/measure_scan.py` before and after |
+| Duplicate trips after an incremental re-run | **0** (row count held at 2,871,948) | idempotent Iceberg `MERGE` on a deterministic `trip_key` |
+| Trips ingested then modeled | 2,964,624 bronze to 2,871,948 fact | cleaned in silver, exact duplicates deduped in gold |
+| Bad data reaching the gold layer | **blocked** | Great Expectations gate on the 2.96M bronze rows plus 17 dbt tests fail the DAG |
+
+The sample is one month; the same pipeline scales to the full 100M+ row TLC history by adding
+months to the ingest. The star schema serves a Metabase dashboard and a FastAPI `/metrics` endpoint.
 
 ## Architecture
 
