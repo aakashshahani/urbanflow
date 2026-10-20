@@ -6,7 +6,7 @@ sources:
     schema: bronze
     tables:
       - name: yellow_trips
-        description: Raw NYC TLC yellow taxi trips, append-only.
+        description: Raw NYC TLC yellow taxi trips, one load per _source_month (re-runs replace the month).
         loaded_at_field: _source_month
         columns:
           - name: tpep_pickup_datetime

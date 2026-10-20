@@ -12,14 +12,23 @@ def ensure_namespace(catalog, namespace: str = BRONZE_NAMESPACE) -> None:
         catalog.create_namespace(namespace)
 
 
-def write_bronze(table_name: str, data: pa.Table, partition_cols: list[str] | None = None) -> str:
-    """Create-or-append ``data`` into ``bronze.<table_name>``.
+def write_bronze(
+    table_name: str,
+    data: pa.Table,
+    partition_cols: list[str] | None = None,
+    replace_month: str | None = None,
+    catalog=None,
+) -> str:
+    """Land ``data`` in ``bronze.<table_name>``.
 
-    Bronze is append-only; silver/gold handle dedup + SCD2. Partitioning is applied
-    at table-create time (Iceberg hidden partitioning) so re-runs stay cheap to scan.
+    With ``replace_month`` the write is idempotent: rows already loaded for that
+    ``_source_month`` are replaced in one atomic Iceberg overwrite, so re-running a
+    month (a retry, a backfill, or the daily schedule) never duplicates bronze rows.
+    Without it the data is appended. Partitioning is applied at table-create time
+    (Iceberg hidden partitioning) so re-runs stay cheap to scan.
     """
-    settings = load_settings()
-    catalog = load_catalog(settings)
+    if catalog is None:
+        catalog = load_catalog(load_settings())
     ensure_namespace(catalog)
 
     identifier = f"{BRONZE_NAMESPACE}.{table_name}"
@@ -27,8 +36,14 @@ def write_bronze(table_name: str, data: pa.Table, partition_cols: list[str] | No
         table = catalog.create_table(identifier, schema=data.schema)
         # NOTE: partition spec (e.g. day(pickup_ts)) is added in a follow-up once the
         # schema is frozen, kept explicit so the tuning step is a measured change.
-    else:
-        table = catalog.load_table(identifier)
+        table.append(data)
+        return identifier
 
-    table.append(data)
+    table = catalog.load_table(identifier)
+    if replace_month is not None:
+        from pyiceberg.expressions import EqualTo
+
+        table.overwrite(data, overwrite_filter=EqualTo("_source_month", replace_month))
+    else:
+        table.append(data)
     return identifier

@@ -44,7 +44,8 @@ def ingest(dataset: str, months: list[str]) -> None:
         raise SystemExit(f"unknown dataset {dataset!r}; choose from {sorted(DATASETS)}")
     for month in months:
         table = fetch_month(dataset, month)
-        identifier = write_bronze(f"{dataset}_trips", table)
+        # replace_month: re-running a month replaces it instead of duplicating it
+        identifier = write_bronze(f"{dataset}_trips", table, replace_month=month)
         print(f"  -> appended to {identifier}", flush=True)
 
 

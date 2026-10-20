@@ -58,7 +58,7 @@ def fetch_month(lat: float, lon: float, month: str) -> pa.Table:
 def ingest(lat: float, lon: float, months: list[str]) -> None:
     for month in months:
         table = fetch_month(lat, lon, month)
-        identifier = write_bronze("weather_hourly", table)
+        identifier = write_bronze("weather_hourly", table, replace_month=month)
         print(f"  -> appended to {identifier}", flush=True)
 
 
