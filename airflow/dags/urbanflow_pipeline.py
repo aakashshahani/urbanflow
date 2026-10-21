@@ -6,9 +6,11 @@ dbt writes the gold layer.
 """
 from __future__ import annotations
 
+import os
 from datetime import datetime, timedelta
 
 from airflow.decorators import dag, task
+from airflow.models.param import Param
 from airflow.operators.bash import BashOperator
 
 DEFAULT_ARGS = {
@@ -28,12 +30,21 @@ DEFAULT_ARGS = {
     catchup=False,
     default_args=DEFAULT_ARGS,
     tags=["urbanflow", "lakehouse"],
+    # Which TLC months to load. Trigger with {"months": ["2023-11", "2023-12"]} to
+    # backfill; ingestion replaces a month on re-run, so scheduled runs are idempotent.
+    params={
+        "months": Param(
+            os.getenv("TLC_MONTHS", "2024-01").split(),
+            type="array",
+            items={"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}$"},
+        ),
+    },
 )
 def urbanflow_pipeline():
     @task
-    def months_to_load() -> list[str]:
-        # In a backfill this expands; dynamic mapping fans out one task per month.
-        return ["2024-01"]
+    def months_to_load(params: dict | None = None) -> list[str]:
+        # Dynamic mapping fans out one ingest task per requested month.
+        return list((params or {}).get("months") or [])
 
     @task
     def ingest_trips(month: str) -> str:
