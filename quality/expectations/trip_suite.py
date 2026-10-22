@@ -10,6 +10,8 @@ import great_expectations as gx
 from great_expectations import expectations as gxe
 
 SUITE_NAME = "bronze_yellow_trips"
+# Columns the suite reads; the gate scans only these from bronze.
+CHECKED_COLUMNS = ("tpep_pickup_datetime", "pulocationid", "total_amount", "trip_distance", "passenger_count")
 
 
 def build_suite() -> gx.ExpectationSuite:

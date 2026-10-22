@@ -61,17 +61,18 @@ def urbanflow_pipeline():
         return month
 
     @task
-    def quality_gate() -> None:
+    def quality_gate(months: list[str]) -> None:
         # Fails the DAG before dbt runs if a Great Expectations suite fails.
+        # Checks only the months this run loaded.
         from quality.run_checks import run_all
 
-        run_all()
+        run_all(months)
 
     months = months_to_load()
     trips = ingest_trips.expand(month=months)
     weather = ingest_weather.expand(month=months)
 
-    gate = quality_gate()
+    gate = quality_gate(months)
 
     dbt_build = BashOperator(
         task_id="dbt_build",
