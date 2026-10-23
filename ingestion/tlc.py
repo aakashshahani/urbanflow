@@ -32,9 +32,10 @@ def fetch_month(dataset: str, month: str) -> pa.Table:
     resp.raise_for_status()
     table = pq.read_table(io.BytesIO(resp.content))
     # Stamp lineage columns so bronze rows are traceable to their source partition.
+    # pa.repeat builds the column natively — no multi-million-element Python list.
     n = table.num_rows
-    table = table.append_column("_source_dataset", pa.array([dataset] * n))
-    table = table.append_column("_source_month", pa.array([month] * n))
+    table = table.append_column("_source_dataset", pa.repeat(pa.scalar(dataset, pa.string()), n))
+    table = table.append_column("_source_month", pa.repeat(pa.scalar(month, pa.string()), n))
     print(f"    {n:,} rows", flush=True)
     return table
 
