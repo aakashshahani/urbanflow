@@ -1,6 +1,7 @@
 -- Central fact at one row per trip, with foreign keys to the conformed dimensions.
--- Incremental so daily runs and backfills only process new pickup days; the Iceberg
--- MERGE keeps re-runs idempotent (no duplicate trips on replay).
+-- Incremental by source month: each run processes months not yet in the fact (so a
+-- backfill of an earlier month is picked up) plus the latest month again (late or
+-- replaced rows); the Iceberg MERGE keeps re-runs idempotent (no duplicate trips).
 {# Iceberg day-partitioning, expressed per adapter: Athena uses partitioned_by,
    Trino uses the iceberg partitioning table property. Both prune a single-day scan. #}
 {% if target.type == 'athena' %}
@@ -9,6 +10,7 @@
         materialized='incremental',
         incremental_strategy='merge',
         unique_key='trip_key',
+        on_schema_change='append_new_columns',
         table_type='iceberg',
         partitioned_by=["day(pickup_ts)"],
     )
@@ -19,6 +21,7 @@
         materialized='incremental',
         incremental_strategy='merge',
         unique_key='trip_key',
+        on_schema_change='append_new_columns',
         table_type='iceberg',
         properties={'partitioning': "ARRAY['day(pickup_ts)']"},
     )
@@ -27,7 +30,11 @@
 with trips as (
     select * from {{ ref('stg_yellow_trips') }}
     {% if is_incremental() %}
-    where cast(pickup_ts as date) > (select coalesce(max(pickup_date), date '1900-01-01') from {{ this }})
+    -- A max(pickup_date) high-water mark silently skipped backfilled earlier months.
+    where source_month not in (
+            select distinct source_month from {{ this }} where source_month is not null
+        )
+       or source_month = (select max(source_month) from {{ this }})
     {% endif %}
 ),
 
@@ -56,7 +63,8 @@ keyed as (
         date_diff('minute', pickup_ts, dropoff_ts)       as trip_minutes,
         passenger_count,
         trip_distance,
-        total_amount
+        total_amount,
+        source_month
     from trips
     where dropoff_ts >= pickup_ts
 ),
@@ -83,6 +91,7 @@ select
     trip_minutes,
     passenger_count,
     trip_distance,
-    total_amount
+    total_amount,
+    source_month
 from ranked
 where _rn = 1
