@@ -7,14 +7,13 @@ sources:
     tables:
       - name: yellow_trips
         description: Raw NYC TLC yellow taxi trips, one load per _source_month (re-runs replace the month).
-        loaded_at_field: _source_month
         columns:
           - name: tpep_pickup_datetime
-            tests: [not_null]
+            data_tests: [not_null]
           - name: pulocationid
-            tests: [not_null]
+            data_tests: [not_null]
       - name: weather_hourly
         description: Hourly weather observations from Open-Meteo.
         columns:
           - name: observed_at
-            tests: [not_null, unique]
+            data_tests: [not_null, unique]
