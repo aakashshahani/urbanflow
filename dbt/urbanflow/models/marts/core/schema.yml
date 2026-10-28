@@ -35,6 +35,13 @@ models:
               to: ref('dim_date')
               field: date_key
       - name: pickup_zone_id
+        data_tests:
+          - not_null
+          # every trip's zone must exist in the (SCD2) zone dimension
+          - relationships:
+              to: ref('dim_zone')
+              field: zone_id
+      - name: source_month
         data_tests: [not_null]
       - name: total_amount
         data_tests:
