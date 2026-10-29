@@ -76,7 +76,12 @@ def urbanflow_pipeline():
 
     dbt_build = BashOperator(
         task_id="dbt_build",
-        bash_command="cd /opt/airflow/dbt/urbanflow && dbt build --target local",
+        # dbt_utils is needed by the tests; fetch it once if the mount lacks it.
+        bash_command=(
+            "cd /opt/airflow/dbt/urbanflow && "
+            "{ [ -d dbt_packages/dbt_utils ] || dbt deps; } && "
+            "dbt build --target local"
+        ),
         sla=timedelta(hours=2),
     )
 

@@ -14,10 +14,21 @@ x-airflow-common: &airflow-common
     AWS_ACCESS_KEY_ID: minioadmin
     AWS_SECRET_ACCESS_KEY: minioadmin
     WAREHOUSE_BUCKET: urbanflow
+    # The DAG imports ingestion/ and quality/ and shells out to dbt, none of which
+    # ship in the stock Airflow image. Fine for this local dev stack; bake an image
+    # for anything longer-lived.
+    _PIP_ADDITIONAL_REQUIREMENTS: "pyiceberg[s3fs]>=0.8.0 great-expectations>=1.0,<2.0 dbt-trino>=1.8.0 python-dotenv>=1.0.0"
+    PYTHONPATH: /opt/airflow
+    # dbt inside the container talks to Trino by service name, not localhost.
+    TRINO_HOST: trino
+    TRINO_PORT: "8080"
+    DBT_PROFILES_DIR: /opt/airflow/dbt/urbanflow
   volumes:
     - ./airflow/dags:/opt/airflow/dags
     - ./airflow/plugins:/opt/airflow/plugins
     - ./ingestion:/opt/airflow/ingestion
+    - ./quality:/opt/airflow/quality
+    - ./dbt:/opt/airflow/dbt
   depends_on:
     postgres:
       condition: service_healthy
