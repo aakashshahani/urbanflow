@@ -7,6 +7,7 @@ python-dotenv>=1.0.0
 
 # Lakehouse query / catalog
 trino>=0.328.0
+pyathena>=3.0.0
 pyiceberg[s3fs,glue]>=0.8.0
 
 # dbt (both adapters; pick per target)
