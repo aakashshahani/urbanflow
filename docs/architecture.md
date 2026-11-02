@@ -17,7 +17,7 @@ quality gates, measured cost tuning, SCD2, backfills), the multi-source marketpl
 the quantified metrics, not on dataset novelty.
 
 ## Medallion layers
-- **Bronze.** Raw, append-only Iceberg tables written by PyArrow, Hive-partitioned by pickup date.
+- **Bronze.** Raw Iceberg tables written by PyArrow, one load per source month: re-running a month replaces it atomically, so ingestion is idempotent.
 - **Silver.** dbt: typed, cleaned, deduped, conformed keys, with late or dirty records quarantined.
 - **Gold.** dbt: a star schema.
   - `fact_trips`, grain of one trip
@@ -70,7 +70,7 @@ uniqueness on keys, and referential integrity on dimension keys.
 
 ## Serving
 - Metabase dashboards on the gold marts.
-- FastAPI `/metrics` over `mart_zone_hourly_demand`, parameterized by zone and date.
+- FastAPI `/metrics` over `mart_zone_hourly_demand`, parameterized by zone and row limit, served from Trino locally or Athena on AWS.
 
 ## Lineage and docs
 OpenLineage events from Airflow and dbt give column-level lineage, alongside a published dbt docs site.

@@ -108,10 +108,16 @@ make demo        # the whole thing end to end on the sample slice
 make down        # stop the stack
 ```
 
+Re-running a month is safe: ingestion replaces that month's bronze rows instead of
+appending duplicates, and `fact_trips` merges on `trip_key`. To backfill through
+Airflow, trigger `urbanflow_pipeline` with `{"months": ["2023-11", "2023-12"]}`.
+The local Iceberg REST catalog keeps its metadata in memory, so after `make down`
+re-run `make seed` before `make build`.
+
 AWS, for the final deploy only:
 
 ```bash
-make tf-apply    # provision S3, Glue, Athena, IAM
+make tf-apply    # provision S3, Glue, Athena
 make deploy-aws  # run the pipeline once against AWS
 make tf-destroy  # tear it all down
 ```
@@ -121,10 +127,10 @@ make tf-destroy  # tear it all down
 ```
 urbanflow/
   ingestion/       Python ingestion (TLC trips, weather API) into bronze Iceberg via PyArrow
-  airflow/dags/    DAGs: data-aware scheduling, SLAs, retries, dynamic task mapping, backfills
+  airflow/dags/    DAGs: SLAs, retries, dynamic task mapping, param-driven backfills
   dbt/urbanflow/   staging, marts, SCD2 snapshots, dbt tests and unit tests, contracts, docs
   quality/         Great Expectations suites that fail the pipeline
-  terraform/       AWS-ready infrastructure (S3, Glue, Athena, IAM)
+  terraform/       AWS-ready infrastructure (S3, Glue, Athena)
   api/             FastAPI /metrics over the gold marts
   scripts/         measure_scan.py bytes-scanned benchmark, helpers
   tests/           pytest on operators and ingestion

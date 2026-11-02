@@ -52,7 +52,7 @@ demo: up seed build test ## One-command end-to-end on the sample slice
 tf-init: ## terraform init
 	cd terraform && terraform init
 
-tf-apply: ## Provision AWS (S3 + Glue + Athena + IAM); no VPC/NAT, no Redshift, no MWAA
+tf-apply: ## Provision AWS (S3 + Glue + Athena); no VPC/NAT, no Redshift, no MWAA
 	cd terraform && terraform apply
 
 deploy-aws: ## Run the pipeline once against AWS (URBANFLOW_TARGET=aws)
